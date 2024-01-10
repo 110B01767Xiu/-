@@ -1,7 +1,7 @@
 import SIC_Instruction
 import math
 
-convert_16 = {10:"A", 11:"B", 12:"C", 13:"D", 14:"E", 15:"F"}
+convert_16 = {"0":0, "1":1, "2":2, "3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "A":10, "B":11, "C":12, "D":13, "E":14, "F"}
 b = True
 count = 0
 start = []
@@ -31,23 +31,21 @@ with open(I) as i:
         for j in range(len(line)):
             if line[j] == " ":
                 line_word += 1
-
-    #從哪開始
-    for m in range(len(start)):
-        start_int += int(start[m]) * pow(10, len(start) - 1 - m)
+def convert16(list):
+    
 
 O = 'OUTPUT.txt'
 with open(O, 'w') as o:
     line_number = 0
+    location = 0
     location_number = 0
     for k in range(len(t)):
         resw_int = 0
-        location = 0
+        location_digits = location % 10
         count_1 = 0
         code = []
         code_1 = []
         code_merge = ""
-        location_digits = location % 10
         line_number += 5 #行號
 
         #得到原始敘述
@@ -76,11 +74,9 @@ with open(O, 'w') as o:
             elif code_merge == "RESB":
                 if count_1 == 2 and t[k][q] != "\\" and t[k][q] != "n":
                         code_1.append(t[k][q])
-            
         #計算位置且16進位
         if (location_digits + location_number) >= 10:
             location = str((location - location_digits) / 10) + convert_16[location_digits + location_number]
 
         #寫入OUTPUT.txt檔
         o.write(str(line_number) + " " + location.zfill(6) + " " + t[k])
-
