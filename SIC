@@ -1,0 +1,86 @@
+import SIC_Instruction
+import math
+
+convert_16 = {10:"A", 11:"B", 12:"C", 13:"D", 14:"E", 15:"F"}
+b = True
+count = 0
+start = []
+start_int = 0
+count_list = []
+
+#讀入INPUT.txt檔
+I = 'INPUT.txt'
+with open(I) as i:
+    t = []
+    lines = i.readlines()
+    for line in lines:
+
+        #判斷start位置
+        if b:
+            for l in range(len(line)):
+                if count == 2 and line[l] != "\n":
+                    start.append(line[l])
+                if line[l] == " ":
+                    count += 1
+                count_list.append(count)
+            b = False
+
+        if line != "\n":
+            t.append(line)
+        line_word = 0 #每行字數
+        for j in range(len(line)):
+            if line[j] == " ":
+                line_word += 1
+
+    #從哪開始
+    for m in range(len(start)):
+        start_int += int(start[m]) * pow(10, len(start) - 1 - m)
+
+O = 'OUTPUT.txt'
+with open(O, 'w') as o:
+    line_number = 0
+    location_number = 0
+    for k in range(len(t)):
+        resw_int = 0
+        location = 0
+        count_1 = 0
+        code = []
+        code_1 = []
+        code_merge = ""
+        location_digits = location % 10
+        line_number += 5 #行號
+
+        #得到原始敘述
+        if count_list[k] == 2:
+            for n in range(len(t[k])):
+                if b:
+                    if t[k][n] == " ":
+                        break
+                    else:
+                        code.append(t[k][n])
+                if t[k][n] == " ":
+                    b = True
+            for p in range(len(code)):
+                code_merge += code[p]
+            if code_merge == "BYTE":
+                
+            elif code_merge == "RESW":
+                for q in range(len(t[k])):
+                    if count_1 == 2 and t[k][q] != "\\" and t[k][q] != "n":
+                        code_1.append(t[k][q])
+                        for m in range(len(code_1)):
+                            resw_int += int(code_1[m]) * pow(10, len(code_1) - 1 - m)
+                    if t[k][n] == " ":
+                        count_1 += 1
+                    location_number = resw_int * 3
+            elif code_merge == "RESB":
+                if count_1 == 2 and t[k][q] != "\\" and t[k][q] != "n":
+                        code_1.append(t[k][q])
+            
+        #計算位置且16進位
+        if (location_digits + location_number) >= 10:
+            location = str((location - location_digits) / 10) + convert_16[location_digits + location_number]
+
+        #寫入OUTPUT.txt檔
+        o.write(str(line_number) + " " + location.zfill(6) + " " + t[k])
+
