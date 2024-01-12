@@ -214,19 +214,19 @@ def SICXE_Assambler() -> None:
 if __name__ == '__main__':
     print('test')
 
-    with open('INPUT.txt', 'r', encoding='UTF-8') as inp:
+    with open('SICXE_input.txt', 'r', encoding='UTF-8') as inp:
         INPUT = inp.readlines()
 
     print(INPUT)
 
-    with open('instrucetion_SICXE.json', 'r', encoding='UTF-8') as inp:
+    with open('SICXE_instrucetion.json', 'r', encoding='UTF-8') as inp:
         instrucetion = json.load(inp)
 
     print(instrucetion)
 
     SICXE_Assambler()
 
-    with open('OUTPUT.txt', 'w', encoding='UTF-8') as outp:
+    with open('SICXE_ouput.txt', 'w', encoding='UTF-8') as outp:
         for line in RESULT:
             if len(line[3]) > 0 and len(line[-2]) > 0 and line[3][0] == '+' and line[-2][0] in ['#', '@']:
                 outp.write(f'{line[0]:>5}     {line[1].upper()}        {line[2]:<8}    {line[3]:<6}     {line[-2]:<10}        {line[-1].upper()}')
