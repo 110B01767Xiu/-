@@ -1,82 +1,125 @@
 import SIC_Instruction
-import math
+from collections import defaultdict
 
-convert_16 = {"0":0, "1":1, "2":2, "3":3, "4":4, "5":5, "6":6, "7":7, "8":8, "9":9, "A":10, "B":11, "C":12, "D":13, "E":14, "F"}
-b = True
-count = 0
-start = []
-start_int = 0
-count_list = []
+def comment(line: str) -> list:
+    for i in range(len(line)):
+        if line[i].find('.') != -1:
+            return line[:i]
+        
+    return line
 
-#讀入INPUT.txt檔
-I = 'INPUT.txt'
-with open(I) as i:
-    t = []
-    lines = i.readlines()
-    for line in lines:
+def BYTE(thrd: str) -> list:
+    mode, data = thrd[0], ""
 
-        #判斷start位置
-        if b:
-            for l in range(len(line)):
-                if count == 2 and line[l] != "\n":
-                    start.append(line[l])
-                if line[l] == " ":
-                    count += 1
-                count_list.append(count)
-            b = False
+    if mode == "C":
+        data += ''.join([hex(ord(c))[2:] for c in thrd[2:-1]]).upper()
 
-        if line != "\n":
-            t.append(line)
-        line_word = 0 #每行字數
-        for j in range(len(line)):
-            if line[j] == " ":
-                line_word += 1
-def convert16(list):
-    
+    elif mode == "X":
+        data += thrd[2:-1]
 
-O = 'OUTPUT.txt'
-with open(O, 'w') as o:
-    line_number = 0
-    location = 0
-    location_number = 0
-    for k in range(len(t)):
-        resw_int = 0
-        location_digits = location % 10
-        count_1 = 0
-        code = []
-        code_1 = []
-        code_merge = ""
-        line_number += 5 #行號
+    else:
+        print("ERROR BYTE OAO")
 
-        #得到原始敘述
-        if count_list[k] == 2:
-            for n in range(len(t[k])):
-                if b:
-                    if t[k][n] == " ":
-                        break
+    return len(data) // 2, data
+
+def WORD(thrd: str) -> list:
+    value, data = int(thrd), ""
+
+    if value >= 0:
+        data = hex(value)[2:].upper().zfill(6)
+
+    else:
+        HEX = "1000000"
+        data = hex(int(HEX, 16) + value)[2:].upper().zfill(6)
+
+    return len(data) // 2, data
+
+def RESB(thrd: str) -> list:
+    return int(thrd), ""
+
+def RESW(thrd: str) -> list:
+    return int(thrd) * 3, ""
+
+def Assambler() -> None:
+    LOCATION, ADD = 0, 0
+    RESULT, FUNC_LOC = [], defaultdict(int)
+
+    with open("INPUT.txt", "r", encoding="UTF-8") as inp:
+        SIC = inp.readlines()
+
+        for line in SIC:
+            line = comment(line.strip().split())
+            fst, snd, thrd, objCode = "", "", "", ""
+
+            if len(line) == 0:
+                continue
+
+            if LOCATION == 0:
+                if line[-2] != "START":
+                    print("ERROR START OAO")
+                    exit()
+
+                LOCATION = int(line[-1], 16)
+                fst, snd, thrd = line[0], line[1], line[2]
+
+                RESULT.append(["", fst, snd, thrd, objCode])
+
+                continue
+
+            else:
+                if len(line) == 1:
+                    snd = line[0]
+                    objCode = SIC_Instruction.instruction[snd] + "0000"
+
+                else:
+                    snd = line[0] if len(line) == 2 else line[1]
+
+                    if snd in SIC_Instruction.instruction:
+                        thrd = line[-1]
+                        ADD = 3
+
+                        if len(line) == 3:
+                            fst = line[0]
+                            FUNC_LOC[fst] = LOCATION
+
                     else:
-                        code.append(t[k][n])
-                if t[k][n] == " ":
-                    b = True
-            for p in range(len(code)):
-                code_merge += code[p]
-            if code_merge == "BYTE":
-                
-            elif code_merge == "RESW":
-                for q in range(len(t[k])):
-                    if count_1 == 2 and t[k][q] != "\\" and t[k][q] != "n":
-                        code_1.append(t[k][q])
-                        for m in range(len(code_1)):
-                            resw_int += int(code_1[m]) * pow(10, len(code_1) - 1 - m)
-                    if t[k][n] == " ":
-                        count_1 += 1
-                    location_number = resw_int * 3
-            elif code_merge == "RESB":
-                if count_1 == 2 and t[k][q] != "\\" and t[k][q] != "n":
-                        code_1.append(t[k][q])
-        #計算位置且16進位
-        if (location_digits + location_number) >= 10:
-            location = str((location - location_digits) / 10) + convert_16[location_digits + location_number]
+                        if snd == "END":
+                            ADD = 0
+                            thrd = line[-1]
 
-        #寫入OUTPUT.txt檔
-        o.write(str(line_number) + " " + location.zfill(6) + " " + t[k])
+                        else:
+                            fst, snd, thrd = line[0], line[1], line[2]
+                            FUNC_LOC[fst] = LOCATION
+
+                            if snd == "BYTE":
+                                ADD, objCode = BYTE(thrd)
+                            elif snd == "WORD":
+                                ADD, objCode = WORD(thrd)
+                            elif snd == "RESB":
+                                ADD, objCode = RESB(thrd)
+                            elif snd == "RESW":
+                                ADD, objCode = RESW(thrd)
+
+            RESULT.append([hex(LOCATION)[2:].upper(), fst, snd, thrd, objCode])
+            LOCATION += ADD
+
+        for idx in range(len(RESULT)):
+            if RESULT[idx][0] == "": continue
+
+            elif RESULT[idx][2] in ["END", "BYTE", "WORD", "RESB", "RESW"]: continue
+
+            else:
+                if len(RESULT[idx][4]) == 0:
+                    if ",X" in RESULT[idx][3]:
+                        RESULT[idx][4] = SIC_Instruction.instruction[RESULT[idx][2]] + hex(FUNC_LOC[RESULT[idx][3]] + int("8000", 16))[2:].upper().zfill(4)
+                    else:
+                        RESULT[idx][4] = SIC_Instruction.instruction[RESULT[idx][2]] + hex(FUNC_LOC[RESULT[idx][3]])[2:].upper()
+
+    with open("OUTPUT.txt", "w", encoding="UTF-8") as fi:
+        for i in range(len(RESULT)):
+            fi.write(f"{(i + 1) * 5:<10}{RESULT[i][0].zfill(6):<10}{RESULT[i][1]:<10}{RESULT[i][2]:<10}{RESULT[i][3]:<10}{RESULT[i][4].zfill(6):<10}\n")
+ 
+    return
+
+if __name__ == "__main__":
+    Assambler()
