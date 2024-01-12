@@ -3,10 +3,13 @@ from collections import defaultdict
 
 instrucetion, INPUT = '', ''
 FUNC_MP, ADDR_LIST, SICXE_LINE, RESULT = defaultdict(str), [], [], []
+
+# 起始旗標
 startFlag = True
 
+# 暫存器的地址及數值
 REGISTER_LIST = {
-    'A':['0', '0'], # [number, address]
+    'A':['0', '0'],
     'X':['1', '0'],
     'L':['2', '0'],
     'B':['3', '0'],
@@ -17,9 +20,11 @@ REGISTER_LIST = {
     'SW':['9', '0']
 }
 
+# 判斷是否為註解行
 def isComment(line: str) -> bool:
     return line[0] == '.'
 
+# 處理BYTE
 def BYTE(line: str) -> list:
     mode, data = line[0], line[2:-1]
     obj = ''
@@ -33,6 +38,7 @@ def BYTE(line: str) -> list:
     
     return len(obj) // 2, obj
 
+# 處理WORD
 def WORD(line: str) -> list:
     value, obj = int(line), ''
 
@@ -43,12 +49,15 @@ def WORD(line: str) -> list:
 
     return len(obj) // 2, obj
 
+# 處理RESB
 def RESB(line: str) -> int:
     return int(line)
 
+# 處理RESW
 def RESW(line: str) -> int:
     return int(line) * 3
 
+# 程式的位置
 def setLocation() -> None:
     global SICXE_LINE, startFlag, ADDR_LIST, FUNC_MP, RESULT
     
@@ -64,7 +73,6 @@ def setLocation() -> None:
     if SICXE_LINE[0][1] != 'START':
         print('START ERROR ! ! !')
         startFlag = False
-
         return
 
     RESULT.append(['5', hex(int(SICXE_LINE[0][2]))[2:].zfill(4), SICXE_LINE[0][0], SICXE_LINE[0][1], SICXE_LINE[0][2], ''])
@@ -79,7 +87,6 @@ def setLocation() -> None:
         if len(line) == 1:
             SECOND = line[-1]
             OBJ = hex(int(instrucetion['instrucetion'][line[-1]][0], 16) + 3)[2:] + '0000'
-
         elif len(line) >= 2:
             if len(line) == 3:
                 FIRST = line[-3]
@@ -111,6 +118,7 @@ def setLocation() -> None:
         ADDR_LIST.append(f'{hex(cur_ADDR)[2:].zfill(4)}')
         RESULT.append([f'{i * 5 + 10}', hex(cur_ADDR)[2:].zfill(4), FIRST, SECOND, THIRD, OBJ])
 
+# 生成objCode
 def objCode() -> None:
     global REGISTER_LIST, RESULT
 
@@ -195,31 +203,25 @@ def objCode() -> None:
             RESULT[idx][-1] = obj
 
 def SICXE_Assambler() -> None:
-    
-
     setLocation()
-
     objCode()
 
     if not startFlag:
         return
 
-
+# 主程式入口
 if __name__ == '__main__':
-    #print('test')
-
+    # 讀取輸入檔案 "SICXE_input.txt"
     with open('SICXE_input.txt', 'r', encoding='UTF-8') as inp:
         INPUT = inp.readlines()
 
-    #print(INPUT)
-
+    # 讀取指令集檔案 "SICXE_instrucetion.json"
     with open('SICXE_instrucetion.json', 'r', encoding='UTF-8') as inp:
         instrucetion = json.load(inp)
 
-    #print(instrucetion)
-
     SICXE_Assambler()
 
+    # 寫入輸出檔案 "SICXE_ouput.txt"
     with open('SICXE_ouput.txt', 'w', encoding='UTF-8') as outp:
         for line in RESULT:
             if len(line[3]) > 0 and len(line[-2]) > 0 and line[3][0] == '+' and line[-2][0] in ['#', '@']:
@@ -232,4 +234,3 @@ if __name__ == '__main__':
                 outp.write(f'{line[0]:>5}     {line[1].upper()}        {line[2]:<8}     {line[3]:<5}      {line[-2]:<9}        {line[-1].upper()}')
 
             outp.write('\n')
-    
