@@ -1,42 +1,49 @@
+# 匯入SIC_Instruction模組和collections模組中的defaultdict
 import SIC_Instruction
 from collections import defaultdict
 
+# 處理註解
 def comment(line: str) -> list:
     for i in range(len(line)):
+        # 找到註解符號"."時，截取該行之前的部分
         if line[i].find('.') != -1:
             return line[:i]
-        
     return line
 
+# 處理BYTE
 def BYTE(thrd: str) -> list:
     mode, data = thrd[0], ""
 
     if mode == "C":
+        # 將字元轉換為ASCII碼，並轉換為16進位表示
         data += ''.join([hex(ord(c))[2:] for c in thrd[2:-1]]).upper()
-
     elif mode == "X":
+        # 取得16進位表示的數據
         data += thrd[2:-1]
-
     else:
         print("ERROR BYTE OAO")
 
     return len(data) // 2, data
 
+# 處理WORD
 def WORD(thrd: str) -> list:
     value, data = int(thrd), ""
 
     if value >= 0:
+        # 將正整數轉換為16進位表示，補0至6位
         data = hex(value)[2:].upper().zfill(6)
-
     else:
         HEX = "1000000"
+        # 處理負整數
         data = hex(int(HEX, 16) + value)[2:].upper().zfill(6)
 
     return len(data) // 2, data
 
+# 處理RESB
 def RESB(thrd: str) -> list:
     return int(thrd), ""
 
+# 處理RESW
 def RESW(thrd: str) -> list:
     return int(thrd) * 3, ""
 
@@ -44,6 +51,7 @@ def Assambler() -> None:
     LOCATION, ADD = 0, 0
     RESULT, FUNC_LOC = [], defaultdict(int)
 
+    # 讀取輸入檔案 "SICXE_input.txt"
     with open("SIC_input.txt", "r", encoding="UTF-8") as inp:
         SIC = inp.readlines()
 
@@ -51,9 +59,11 @@ def Assambler() -> None:
             line = comment(line.strip().split())
             fst, snd, thrd, objCode = "", "", "", ""
 
+            # 若該行為空行，則繼續下一行
             if len(line) == 0:
                 continue
 
+            # 處理START
             if LOCATION == 0:
                 if line[-2] != "START":
                     print("ERROR START OAO")
@@ -67,6 +77,7 @@ def Assambler() -> None:
                 continue
 
             else:
+                # 處理非START指令的情況
                 if len(line) == 1:
                     snd = line[0]
                     objCode = SIC_Instruction.instruction[snd] + "0000"
@@ -74,15 +85,18 @@ def Assambler() -> None:
                 else:
                     snd = line[0] if len(line) == 2 else line[1]
 
+                    # 判斷該行是否為機器指令
                     if snd in SIC_Instruction.instruction:
                         thrd = line[-1]
                         ADD = 3
 
+                        # 處理可能的標記
                         if len(line) == 3:
                             fst = line[0]
                             FUNC_LOC[fst] = LOCATION
-
+                    # 根據不同指令理處
                     else:
+                        
                         if snd == "END":
                             ADD = 0
                             thrd = line[-1]
@@ -100,26 +114,29 @@ def Assambler() -> None:
                             elif snd == "RESW":
                                 ADD, objCode = RESW(thrd)
 
+            # 將結果添加到RESULT列表中
             RESULT.append([hex(LOCATION)[2:].upper(), fst, snd, thrd, objCode])
             LOCATION += ADD
 
+        # 格式化
         for idx in range(len(RESULT)):
-            if RESULT[idx][0] == "": continue
-
-            elif RESULT[idx][2] in ["END", "BYTE", "WORD", "RESB", "RESW"]: continue
-
+            if RESULT[idx][0] == "":
+                continue
+            elif RESULT[idx][2] in ["END", "BYTE", "WORD", "RESB", "RESW"]:
+                continue
             else:
                 if len(RESULT[idx][4]) == 0:
+                    # 處理相對位址
                     if ",X" in RESULT[idx][3]:
                         RESULT[idx][4] = SIC_Instruction.instruction[RESULT[idx][2]] + hex(FUNC_LOC[RESULT[idx][3]] + int("8000", 16))[2:].upper().zfill(4)
                     else:
                         RESULT[idx][4] = SIC_Instruction.instruction[RESULT[idx][2]] + hex(FUNC_LOC[RESULT[idx][3]])[2:].upper()
 
-    with open("SIC_ouput.txt", "w", encoding="UTF-8") as fi:
+    # 寫入輸出檔案 "SIC_ouput.txt"
+    with open("SIC_output.txt", "w", encoding="UTF-8") as fi:
         for i in range(len(RESULT)):
             fi.write(f"{(i + 1) * 5:<10}{RESULT[i][0].zfill(6):<10}{RESULT[i][1]:<10}{RESULT[i][2]:<10}{RESULT[i][3]:<10}{RESULT[i][4].zfill(6):<10}\n")
- 
-    return
 
+# 主程式入口
 if __name__ == "__main__":
     Assambler()
