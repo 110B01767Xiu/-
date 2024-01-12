@@ -44,7 +44,7 @@ def Assambler() -> None:
     LOCATION, ADD = 0, 0
     RESULT, FUNC_LOC = [], defaultdict(int)
 
-    with open("INPUT.txt", "r", encoding="UTF-8") as inp:
+    with open("SIC_input.txt", "r", encoding="UTF-8") as inp:
         SIC = inp.readlines()
 
         for line in SIC:
@@ -115,7 +115,7 @@ def Assambler() -> None:
                     else:
                         RESULT[idx][4] = SIC_Instruction.instruction[RESULT[idx][2]] + hex(FUNC_LOC[RESULT[idx][3]])[2:].upper()
 
-    with open("OUTPUT.txt", "w", encoding="UTF-8") as fi:
+    with open("SIC_ouput.txt", "w", encoding="UTF-8") as fi:
         for i in range(len(RESULT)):
             fi.write(f"{(i + 1) * 5:<10}{RESULT[i][0].zfill(6):<10}{RESULT[i][1]:<10}{RESULT[i][2]:<10}{RESULT[i][3]:<10}{RESULT[i][4].zfill(6):<10}\n")
  
