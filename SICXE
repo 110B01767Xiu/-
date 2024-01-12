@@ -195,34 +195,28 @@ def objCode() -> None:
             RESULT[idx][-1] = obj
 
 def SICXE_Assambler() -> None:
-    print('SICXE_Assambler')
+    
 
     setLocation()
-
-    print('\n'.join(ADDR_LIST))
 
     objCode()
 
     if not startFlag:
         return
-    
-    for line in RESULT:
-        print(line)
 
-    
 
 if __name__ == '__main__':
-    print('test')
+    #print('test')
 
     with open('SICXE_input.txt', 'r', encoding='UTF-8') as inp:
         INPUT = inp.readlines()
 
-    print(INPUT)
+    #print(INPUT)
 
     with open('SICXE_instrucetion.json', 'r', encoding='UTF-8') as inp:
         instrucetion = json.load(inp)
 
-    print(instrucetion)
+    #print(instrucetion)
 
     SICXE_Assambler()
 
